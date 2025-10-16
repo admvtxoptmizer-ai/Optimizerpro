@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Configurações Free Fire</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #000;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+  }
+
+  .background {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    top: 0;
+    left: 0;
+    z-index: 0;
+  }
+
+  .bubble {
+    position: absolute;
+    bottom: -10px;
+    background-color: white;
+    border-radius: 50%;
+    opacity: 0.7;
+    animation: rise 10s infinite ease-in;
+  }
+
+  @keyframes rise {
+    0% {
+      transform: translateY(0) scale(1);
+      opacity: 0.7;
+    }
+    100% {
+      transform: translateY(-110vh) scale(0.5);
+      opacity: 0;
+    }
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    background-color: rgba(10, 10, 30, 0.9);
+    border: 2px solid #0a5cff;
+    border-radius: 14px;
+    padding: 20px;
+    width: 320px;
+    box-shadow: 0 0 20px rgba(0, 90, 255, 0.4);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  h2 {
+    text-align: center;
+    color: #0a5cff;
+    margin-bottom: 15px;
+  }
+
+  label {
+    display: block;
+    margin: 8px 0;
+    cursor: pointer;
+  }
+
+  input[type="checkbox"] {
+    margin-right: 6px;
+    cursor: pointer;
+  }
+
+  .os-buttons {
+    display: flex;
+    justify-content: space-around;
+    margin: 10px 0;
+  }
+
+  .os-buttons button {
+    background-color: #0a5cff;
+    border: none;
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+    flex: 1;
+    margin: 0 5px;
+  }
+
+  .os-buttons button:hover,
+  .os-buttons button.active {
+    background-color: #0040cc;
+  }
+
+  .slider-container {
+    margin: 10px 0;
+  }
+
+  input[type="range"] {
+    width: 100%;
+    cursor: pointer;
+  }
+
+  .botao {
+    background-color: #0a5cff;
+    color: white;
+    border: none;
+    padding: 12px;
+    width: 100%;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: background-color 0.3s;
+  }
+
+  .botao:hover {
+    background-color: #0040cc;
+  }
+
+  .botao:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+  }
+
+  .status {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: bold;
+    display: none;
+  }
+
+  .status.show {
+    display: block;
+  }
+
+  .status.success {
+    background-color: rgba(0, 255, 0, 0.2);
+    border: 1px solid #0f0;
+    color: #0f0;
+  }
+
+  .status.error {
+    background-color: rgba(255, 0, 0, 0.2);
+    border: 1px solid #f00;
+    color: #f00;
+  }
+
+  .status.loading {
+    background-color: rgba(10, 92, 255, 0.2);
+    border: 1px solid #0a5cff;
+    color: #0a5cff;
+  }
+</style>
+</head>
+<body>
+  <div class="background" id="background"></div>
+
+  <div class="container">
+    <h2>Free Fire Config</h2>
+    
+    <label><input type="checkbox" id="headshot" checked> Facilitar tiros na cabeça</label>
+    <label><input type="checkbox" id="recoil" checked> Reduzir recuo</label>
+
+    <p>Qual sistema operacional do seu dispositivo:</p>
+    <div class="os-buttons">
+      <button id="btn-android" class="active" onclick="selectOS('android')">ANDROID</button>
+      <button id="btn-iphone" onclick="selectOS('iphone')">IPHONE</button>
+    </div>
+
+    <label><input type="checkbox" id="precision"> Aumentar precisão em 100%</label>
+    <label><input type="checkbox" id="strafe"> Strafe auto</label>
+
+    <div class="slider-container">
+      <label>Fov Px: <span id="fov-value">0</span>px</label>
+      <input type="range" id="fov-slider" min="0" max="100" value="0" oninput="updateSlider('fov')">
+    </div>
+
+    <div class="slider-container">
+      <label>Força da Mira: <span id="aim-value">0</span></label>
+      <input type="range" id="aim-slider" min="0" max="100" value="0" oninput="updateSlider('aim')">
+    </div>
+
+    <p>Ajustes do botão de disparo:</p>
+    <label><input type="checkbox" id="calibrate"> Calibrar botão de disparo</label>
+    <label><input type="checkbox" id="stabilize"> Estabilizar botão</label>
+    <label><input type="checkbox" id="fixed"> Botão fixo</label>
+
+    <button class="botao" onclick="injetarConfig()">Injetar Configurações</button>
+    <button class="botao" onclick="abrirFreeFire()">Abrir Free Fire (Normal)</button>
+
+    <div class="status" id="status"></div>
+  </div>
+
+  <script>
+    // Cria bolinhas animadas
+    const background = document.getElementById('background');
+    for (let i = 0; i < 40; i++) {
+      const bubble = document.createElement('div');
+      const size = Math.random() * 6 + 3;
+      bubble.classList.add('bubble');
+      bubble.style.width = `${size}px`;
+      bubble.style.height = `${size}px`;
+      bubble.style.left = `${Math.random() * 100}%`;
+      bubble.style.animationDuration = `${6 + Math.random() * 6}s`;
+      bubble.style.animationDelay = `${Math.random() * 5}s`;
+      background.appendChild(bubble);
+    }
+
+    let selectedOS = 'android';
+
+    function selectOS(os) {
+      selectedOS = os;
+      document.getElementById('btn-android').classList.toggle('active', os === 'android');
+      document.getElementById('btn-iphone').classList.toggle('active', os === 'iphone');
+    }
+
+    function updateSlider(type) {
+      const value = document.getElementById(`${type}-slider`).value;
+      document.getElementById(`${type}-value`).textContent = value;
+    }
+
+    async function injetarConfig() {
+      const config = {
+        headshot: document.getElementById('headshot').checked,
+        recoil: document.getElementById('recoil').checked,
+        os: selectedOS,
+        precision: document.getElementById('precision').checked,
+        strafe: document.getElementById('strafe').checked,
+        fov: parseInt(document.getElementById('fov-slider').value),
+        aimForce: parseInt(document.getElementById('aim-slider').value),
+        calibrate: document.getElementById('calibrate').checked,
+        stabilize: document.getElementById('stabilize').checked,
+        fixed: document.getElementById('fixed').checked
+      };
+
+      // Código de injeção Shadowrocket
+      const shadowrocketConfig = {
+        general: {
+          include: "dts.freefireth.com.conf",
+          reg: "DanielXit_FreeFire.Reg"
+        },
+        rule: {
+          domainSuffix: "aim, PROXY"
+        },
+        urlRewrite: {
+          aim: "REJECT-ARRAY",
+          danielxit: "freefireth REJECT-DICT"
+        },
+        script: {
+          type: "rule",
+          scriptPath: "PhoneRegsetting/UTF-8/iPhoneReg/IREG",
+          device: selectedOS === 'iphone' ? "iPhone" : "Android",
+          version: selectedOS === 'iphone' ? "15.5" : "13",
+          model: selectedOS === 'iphone' ? "iPhone 12" : "Samsung Galaxy",
+          adamID: "243834955",
+          nameApp: "FreeFireTH",
+          bundle: "com.dts.freefireth",
+          appVersion: "2.90.2",
+          touch: "0,0000000061",
+          xml: "X=3, 21",
+          txt: "Y=50,8",
+          sensitivity: ["0x0000078195", "0x0000008293", "0x0000007291"],
+          delay: "0,00082",
+          tapshoot: true
+        },
+        registry: {
+          MouseTrails: "0.5",
+          MouseThreshold1: "0",
+          MouseThreshold2: "0",
+          MouseSpeed: "0",
+          MouseSensitivity: "9",
+          DoubleClickSpeed: "830",
+          DoubleClickHeight: "4",
+          ngonLammGud: "hex:00,00,00,00,00,00,00,00,fd,11,01,00,00,00,00,00,00,24,04,00,00,00,00,00,00,fc,12,00,00,00,00,00,00,co,bb,01,00,00,00,00",
+          soVip: "hex:00,00,00,00,00,00,00,00,15,60,00,00,00,00,00,00,00,40,01,00,00,00,00,00,29,dc,03,00,00,00,00,00,00,00,28,00,00,00,00,00",
+          lockFull: "6",
+          DPI: "9000",
+          panel: "1",
+          Aimlock: "dword:100",
+          aim: "1"
+        },
+        appInfo: {
+          appName: "freefireth",
+          timestamp: new Date().toISOString(),
+          appVersion: "1.67.0",
+          sliceUuid: "09d74a1d-7b74-3000-85c4-740d860ee4ec",
+          adamId: "243834955",
+          buildVersion: "2019114689",
+          platform: 2,
+          bundleID: "com.dts.freefireth",
+          shareWithAppDevs: 0,
+          isFirstParty: 0,
+          bugType: "309",
+          osVersion: selectedOS === 'iphone' ? "iPhone IOS 15.5(19874)" : "Android 13",
+          incidentId: generateUUID(),
+          name: "freefireth"
+        },
+        userConfig: config
+      };
+
+      const statusDiv = document.getElementById('status');
+      statusDiv.className = 'status loading show';
+      statusDiv.textContent = 'Injetando configurações...';
+
+      try {
+        console.log('Enviando configuração:', shadowrocketConfig);
+
+        // Chama a API Netlify
+        const response = await fetch('/.netlify/functions/aimbot', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(shadowrocketConfig)
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          statusDiv.className = 'status success show';
+          statusDiv.textContent = '✓ Configurações injetadas com sucesso!';
+          console.log('Resposta:', result);
+        } else {
+          throw new Error('Erro na resposta da API');
+        }
+      } catch (error) {
+        console.error('Erro:', error);
+        statusDiv.className = 'status error show';
+        statusDiv.textContent = '✗ Erro ao injetar configurações';
+      }
+
+      setTimeout(() => {
+        statusDiv.classList.remove('show');
+      }, 3000);
+    }
+
+    function abrirFreeFire() {
+      const statusDiv = document.getElementById('status');
+      statusDiv.className = 'status loading show';
+      statusDiv.textContent = 'Abrindo Free Fire...';
+
+      if (selectedOS === 'iphone') {
+        window.location.href = 'freefire://';
+      } else {
+        window.location.href = 'freefire://';
+      }
+
+      setTimeout(() => {
+        statusDiv.classList.remove('show');
+      }, 2000);
+    }
+
+    function generateUUID() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16).toUpperCase();
+      });
+    }
+  </script>
+</body>
+                                                                      </html>
