@@ -1,0 +1,19 @@
+{
+  "name": "free-fire-config",
+  "version": "1.0.0",
+  "description": "Free Fire Configuration Injector",
+  "main": "server.js",
+  "scripts": {
+    "dev": "netlify dev",
+    "start": "node server.js",
+    "deploy": "netlify deploy --prod"
+  },
+  "dependencies": {
+    "@netlify/functions": "^2.4.0",
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.10.0"
+  }
+}
